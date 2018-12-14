@@ -1,0 +1,56 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "node_modules": true,
+        "dist": true,
+        "scripts": true,
+        "**/*.js": {
+            "when": "$(basename).ts"
+        },
+        "**/*.map": {
+            "when": "$(basename).map"
+        },
+        "backup": true,
+        "**/symbols*.json": true
+    },
+    "editor.formatOnSave": true,
+    "tslint.autoFixOnSave": true,
+    "files.trimTrailingWhitespace": true,
+    "vsicons.presets.angular": false,
+    "[json]": {
+        "editor.formatOnSave": false
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": false
+    },
+    "sqltools.connections": [
+        {
+            "name": "vrok.misth",
+            "server": "vrok.duckdns.org",
+            "port": 5911,
+            "database": "misth",
+            "username": "postgress",
+            "password": "postgress",
+            "dialect": "PostgreSQL",
+			"previewLimit": 20 // introduced in version v0.15.1
+        },{
+            "name": "vrok.diets",
+            "server": "vrok.duckdns.org",
+            "port": 5911,
+            "database": "diets",
+            "username": "postgress",
+            "password": "postgress",
+            "dialect": "PostgreSQL",
+			"previewLimit": 20 // introduced in version v0.15.1
+        },{
+            "name": "vrok.generator",
+            "server": "vrok.duckdns.org",
+            "port": 5911,
+            "database": "gen",
+            "username": "postgress",
+            "password": "postgress",
+            "dialect": "PostgreSQL",
+			"previewLimit": 20 // introduced in version v0.15.1
+        }
+    ]
+}

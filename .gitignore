@@ -1,0 +1,6 @@
+*.js
+out
+test
+node_modules
+.vscode/symbols.*
+package-lock.json
