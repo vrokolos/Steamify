@@ -6,14 +6,9 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
-    "author": "",
+    "author": "Iosif Karaioannoglou",
     "license": "ISC",
     "dependencies": {
-        "@types/gm": "^1.18.2",
-        "@types/klaw-sync": "^5.0.0",
-        "@types/node": "^10.12.12",
-        "@types/node-fetch": "^2.1.4",
-        "@types/xml2js": "^0.4.3",
         "crc-full": "^1.1.0",
         "gm": "^1.23.1",
         "klaw-sync": "^6.0.0",
@@ -21,9 +16,15 @@
         "node-fetch": "^2.3.0",
         "regedit": "^3.0.2",
         "ts-node": "^7.0.1",
+        "typescript": "^3.2.2",
         "xml2js": "^0.4.19"
     },
     "devDependencies": {
+        "@types/gm": "^1.18.2",
+        "@types/klaw-sync": "^5.0.0",
+        "@types/node": "^10.12.12",
+        "@types/node-fetch": "^2.1.4",
+        "@types/xml2js": "^0.4.3",
         "@types/long": "^4.0.0"
     }
 }

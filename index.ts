@@ -1,3 +1,4 @@
 import { Converter } from "./src/converter";
 
-Converter.go();
+console.log("Locating extraterrestial pigeons");
+Converter.go().then(() => console.log("Pigeons escaped radar range"));
