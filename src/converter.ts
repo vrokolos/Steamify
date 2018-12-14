@@ -19,6 +19,13 @@ export class Converter {
     }
 
     public async fix(games: Game[]): Promise<Game[]> {
+        if (!fs.existsSync("./out")) {
+            fs.mkdirSync("./out");
+        }
+        if (!fs.existsSync("./out/pics")) {
+            fs.mkdirSync("./out/pics");
+        }
+
         for (let game of games) {
             try {
                 let gameExe = game.exec;
