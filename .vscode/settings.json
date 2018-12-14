@@ -22,35 +22,5 @@
     },
     "[jsonc]": {
         "editor.formatOnSave": false
-    },
-    "sqltools.connections": [
-        {
-            "name": "vrok.misth",
-            "server": "vrok.duckdns.org",
-            "port": 5911,
-            "database": "misth",
-            "username": "postgress",
-            "password": "postgress",
-            "dialect": "PostgreSQL",
-			"previewLimit": 20 // introduced in version v0.15.1
-        },{
-            "name": "vrok.diets",
-            "server": "vrok.duckdns.org",
-            "port": 5911,
-            "database": "diets",
-            "username": "postgress",
-            "password": "postgress",
-            "dialect": "PostgreSQL",
-			"previewLimit": 20 // introduced in version v0.15.1
-        },{
-            "name": "vrok.generator",
-            "server": "vrok.duckdns.org",
-            "port": 5911,
-            "database": "gen",
-            "username": "postgress",
-            "password": "postgress",
-            "dialect": "PostgreSQL",
-			"previewLimit": 20 // introduced in version v0.15.1
-        }
-    ]
+    }
 }
