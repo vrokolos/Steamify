@@ -17,10 +17,13 @@ export class Gog implements IImporter {
                 try {
                     let obj = JSON.parse(fs.readFileSync(pac.path, "utf8"));
                     let playTask = obj.playTasks.find(p => p.category == "game");
+                    if (playTask == null) {
+                        playTask = obj.playTasks[0];
+                    }
                     let apiFetch = await fetch(`https://api.gog.com/products/${obj.gameId}`);
                     let api = await apiFetch.json();
                     let newGame = {
-                        icon: 'http:' + api.images.icon,
+                        icon: api.images.icon == null ? '' : 'http:' + api.images.icon,
                         tile: 'http:' + api.images.logo2x.replace("glx_logo_2x", "ggvgm"),
                         name: obj.name,
                         exec: playTask.path,
@@ -31,7 +34,7 @@ export class Gog implements IImporter {
                     };
                     games.push(newGame);
                 } catch (e) {
-                    console.log(`Failed to import installed GOG game ${pac}.`);
+                    console.log(`Failed to import installed GOG game ${pac.path}.`, e);
                 }
             }
         }

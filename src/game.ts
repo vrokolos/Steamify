@@ -8,4 +8,5 @@ export class Game {
     public workFolder?: string = "";
     public tag?: string = "";
     public poster?: string = "";
+    public fixTile?: boolean = true;
 }

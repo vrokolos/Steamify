@@ -4,6 +4,7 @@ import { Gog } from "./gog";
 import { Origin } from "./origin";
 import { Uplay } from "./uplay";
 import { Bnet } from "./bnet";
+import { Custom } from "./custom";
 
 export class MassImporter implements IImporter {
     public async getInstalledGames(libPath: string): Promise<Game[]> {
@@ -12,7 +13,8 @@ export class MassImporter implements IImporter {
             { imp: new Gog(), lib: config.GOG },
             { imp: new Origin(), lib: config.Origin },
             { imp: new Uplay(), lib: config.Uplay },
-            { imp: new Bnet(), lib: config.Bnet }
+            { imp: new Bnet(), lib: config.Bnet },
+            { imp: new Custom(), lib: config.Custom }
         ];
 
         let results = await Promise.all(importers.map(p => p.imp.getInstalledGames(p.lib)));

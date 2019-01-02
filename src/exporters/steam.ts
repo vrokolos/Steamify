@@ -4,18 +4,25 @@ import * as path from "path";
 import { CRC } from 'crc-full';
 import long = require("long");
 import { IExporter } from "./exporter_iface";
+import { exec, spawn } from "child_process";
 
 export class Shortcuter implements IExporter {
+    private steamExe = "C:/Program Files (x86)/Steam/Steam.exe";
     public async sync(games: Game[], steamConfig: string): Promise<void> {
         let steamTileFolder = path.join(steamConfig, `grid`);
         let steamShortcutsPath = path.join(steamConfig, `shortcuts.vdf`);
         let shortfile = fs.readFileSync(steamShortcutsPath, "utf8");
         let shorts: Shortcut[] = this.import(shortfile);
+        let added = false;
         for (let game of games) {
             try {
                 let appId = this.getAppId(game.exec, game.name);
                 let tileFile = path.join(steamTileFolder, appId + ".jpg");
-                fs.copyFileSync(game.tile, tileFile);
+                try {
+                    fs.copyFileSync(game.tile, tileFile);
+                } catch (ex) {
+                    console.log("Couldn't copy tile file: ", ex);
+                }
                 if (!shorts.some(p => p.exe == game.exec)) {
                     let newItem = new Shortcut();
                     newItem.appname = game.name;
@@ -26,15 +33,24 @@ export class Shortcuter implements IExporter {
                     newItem.icon = game.icon;
                     newItem.tags = [game.tag, "AUTO"];
                     console.log(newItem);
+                    added = true;
                     shorts.push(newItem);
                 }
             } catch (e) {
                 console.log(e, "Error on game", game);
             }
         }
-        shorts = shorts.filter(p => p.tags.indexOf("AUTO") == -1 || games.some(g => g.name == p.appname));
-        let outShort = this.export(shorts);
-        fs.writeFileSync(steamShortcutsPath, outShort);
+        let removed = shorts.filter(p => p.tags.indexOf("AUTO") != -1 && !games.some(g => g.name == p.appname));
+        let outshorts = shorts.filter(p => p.tags.indexOf("AUTO") == -1 || games.some(g => g.name == p.appname));
+        if (added || removed.length > 0) {
+            let outShort = this.export(outshorts);
+            exec(`"${this.steamExe}" -shutdown`, (err, data) => {
+                if (err) { console.log("Failed: steam shutdown"); }
+                console.log(data.toString());
+                setTimeout(() => spawn(this.steamExe, { stdio: 'ignore', detached: true }).unref(), 5000);
+            });
+            fs.writeFileSync(steamShortcutsPath, outShort);
+        }
     }
 
     private crc = CRC.default("CRC32");

@@ -37,7 +37,15 @@ export class Converter {
                 let steamTileFolder = "./out/pics";
                 let tileFile = path.join(steamTileFolder, appId + ".jpg");
                 if (game.tile != '' && game.tile != null) {
-                    await this.portraitToTile(game.tile, tileFile);
+                    if (game.fixTile) {
+                        await this.portraitToTile(game.tile, tileFile);
+                    } else if (game.tile.startsWith("http")) {
+                        let req = await fetch(game.tile);
+                        let buff = await req.buffer();
+                        fs.writeFileSync(tileFile, buff);
+                    } else if (!fs.existsSync(tileFile)) {
+                        fs.copyFileSync(game.tile, tileFile);
+                    }
                 } else if (game.poster != '' && game.poster != null) {
                     await this.portraitToTile(game.poster, tileFile);
                 } else {
