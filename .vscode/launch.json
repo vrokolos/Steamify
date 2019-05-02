@@ -14,7 +14,8 @@
             ],
             "args": [
                 "${workspaceFolder}/index.ts"
-            ]
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }

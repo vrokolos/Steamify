@@ -1,5 +1,6 @@
 import regedit = require('regedit');
 import * as xml2js from "xml2js";
+import * as fs from "fs";
 
 export namespace Utils {
     export async function GetReg(key: string): Promise<any> {
@@ -31,5 +32,21 @@ export namespace Utils {
             });
         });
         return ss;
+    }
+
+    let list: { [name: string]: number } = null;
+    // GAMELIST: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
+    export async function steamsearch(name: string): Promise<any> {
+        if (list == null) {
+            list = {};
+            let thelist = JSON.parse(fs.readFileSync("./assets/steamGames.json", "utf8")).applist.apps.app;
+            for (let app of thelist) {
+                list[app.name] = app.appid;
+            }
+        }
+        if (list.hasOwnProperty(name)) {
+            return list[name];
+        }
+        return null;
     }
 }

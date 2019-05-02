@@ -17,18 +17,19 @@
         "gm": "^1.23.1",
         "klaw-sync": "^6.0.0",
         "long": "^4.0.0",
-        "node-fetch": "^2.3.0",
+        "node-fetch": "^2.5.0",
         "regedit": "^3.0.2",
-        "ts-node": "^7.0.1",
-        "typescript": "^3.2.2",
+        "steam-store": "^0.4.1",
+        "ts-node": "^8.1.0",
+        "typescript": "^3.4.5",
         "xml2js": "^0.4.19"
     },
     "devDependencies": {
         "@types/gm": "^1.18.2",
-        "@types/klaw-sync": "^5.0.0",
-        "@types/node": "^10.12.12",
-        "@types/node-fetch": "^2.1.4",
-        "@types/xml2js": "^0.4.3",
-        "@types/long": "^4.0.0"
+        "@types/klaw-sync": "^6.0.0",
+        "@types/long": "^4.0.0",
+        "@types/node": "^11.13.8",
+        "@types/node-fetch": "^2.3.3",
+        "@types/xml2js": "^0.4.4"
     }
 }

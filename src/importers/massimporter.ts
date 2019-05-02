@@ -5,6 +5,7 @@ import { Origin } from "./origin";
 import { Uplay } from "./uplay";
 import { Bnet } from "./bnet";
 import { Custom } from "./custom";
+import { Epic } from "./epic";
 
 export class MassImporter implements IImporter {
     public async getInstalledGames(libPath: string): Promise<Game[]> {
@@ -13,6 +14,7 @@ export class MassImporter implements IImporter {
             { imp: new Gog(), lib: config.GOG },
             { imp: new Origin(), lib: config.Origin },
             { imp: new Uplay(), lib: config.Uplay },
+            { imp: new Epic(), lib: config.Epic },
             { imp: new Bnet(), lib: config.Bnet },
             { imp: new Custom(), lib: config.Custom }
         ];
