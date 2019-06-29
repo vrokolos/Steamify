@@ -8,9 +8,9 @@ import { exec, spawn } from "child_process";
 
 export class Shortcuter implements IExporter {
     private steamExe = "C:/Program Files (x86)/Steam/Steam.exe";
-    public async sync(games: Game[], steamConfig: string): Promise<void> {
-        let steamTileFolder = path.join(steamConfig, `grid`);
-        let steamShortcutsPath = path.join(steamConfig, `shortcuts.vdf`);
+    public async sync(games: Game[], steamConfig: string | string[]): Promise<void> {
+        let steamTileFolder = path.join(steamConfig as string, `grid`);
+        let steamShortcutsPath = path.join(steamConfig as string, `shortcuts.vdf`);
         let shortfile = fs.readFileSync(steamShortcutsPath, "utf8");
         let shorts: Shortcut[] = this.import(shortfile);
         let added = false;
@@ -19,10 +19,13 @@ export class Shortcuter implements IExporter {
                 let appId = this.getAppId(game.exec, game.name);
                 let tileFile = path.join(steamTileFolder, appId + ".jpg");
                 try {
-                    fs.copyFileSync(game.tile, tileFile);
+                    if (game.tile != '') {
+                        fs.copyFileSync(game.tile, tileFile);
+                    }
                 } catch (ex) {
                     console.log("Couldn't copy tile file: ", ex);
                 }
+                console.log(`[${game.tag}] ${game.name}: ${game.tile}`);
                 if (!shorts.some(p => p.exe == game.exec)) {
                     let newItem = new Shortcut();
                     newItem.appname = game.name;
@@ -32,7 +35,6 @@ export class Shortcuter implements IExporter {
                     newItem.launchOptions = game.args;
                     newItem.icon = game.icon;
                     newItem.tags = [game.tag, "AUTO"];
-                    console.log(newItem);
                     added = true;
                     shorts.push(newItem);
                 }
@@ -66,7 +68,7 @@ export class Shortcuter implements IExporter {
     private regTags = /\00tags\00(.*?)[\b]/i;
     private regTag = /\01[0-9]+\00(.*?)\00(.*)/i;
 
-    private import(vdfAsString: string): Shortcut[] {
+    public import(vdfAsString: string): Shortcut[] {
         let match = this.regVdf.exec(vdfAsString);
         if (!match) {
             throw new Error("Invalid shortcuts.vdf file");
@@ -100,6 +102,7 @@ export class Shortcuter implements IExporter {
         shortcut.shortcutPath = shortcutPath ? shortcutPath[1] : "";
         shortcut.hidden = hidden ? hidden[1] === "\x01" : false;
         shortcut.tags = tags ? this.parseTags(tags[1]) : [];
+        shortcut.id = this.getAppId(shortcut.exe, shortcut.appname);
         return shortcut;
     }
 
@@ -144,7 +147,7 @@ export class Shortcuter implements IExporter {
     }
 }
 
-class Shortcut {
+export class Shortcut {
     public appname: string;
     public exe: string;
     public startDir: string;
@@ -154,4 +157,6 @@ class Shortcut {
     public tags: string[];
     public favorite?: string;
     public launchOptions: string;
+
+    public id: string;
 }

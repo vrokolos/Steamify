@@ -4,12 +4,8 @@
         "node_modules": true,
         "dist": true,
         "scripts": true,
-        "**/*.js": {
-            "when": "$(basename).ts"
-        },
-        "**/*.map": {
-            "when": "$(basename).map"
-        },
+        "**/*.js": { "when": "$(basename).ts" },
+        "**/*.map": true,
         "backup": true,
         "**/symbols*.json": true
     },
@@ -17,10 +13,6 @@
     "tslint.autoFixOnSave": true,
     "files.trimTrailingWhitespace": true,
     "vsicons.presets.angular": false,
-    "[json]": {
-        "editor.formatOnSave": false
-    },
-    "[jsonc]": {
-        "editor.formatOnSave": false
-    }
+    "[json]": { "editor.formatOnSave": false },
+    "[jsonc]": { "editor.formatOnSave": false }
 }

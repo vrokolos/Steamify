@@ -13,8 +13,7 @@ export class Origin implements IImporter {
         let games: Game[] = [];
 
         if (fs.existsSync(contentPath)) {
-            let opts: klaw.Options = { nodir: true, filter: file => path.extname(file.path) == ".mfst" };
-            (<any>opts).traverseAll = true;
+            let opts: klaw.Options = { nodir: true, filter: file => path.extname(file.path) == ".mfst", traverseAll: true };
             const packages = klaw(contentPath, opts);
             for (let thePackage of packages) {
                 try {

@@ -10,8 +10,7 @@ export class Gog implements IImporter {
         let games: Game[] = [];
 
         if (fs.existsSync(libPath)) {
-            let opts: klaw.Options = { nodir: true, filter: file => file.path.indexOf("goggame") > -1 && path.extname(file.path) == ".info" };
-            (<any>opts).traverseAll = true;
+            let opts: klaw.Options = { nodir: true, traverseAll: true, filter: file => file.path.indexOf("goggame") > -1 && path.extname(file.path) == ".info" };
             const packages = klaw(libPath, opts);
             for (let pac of packages) {
                 try {

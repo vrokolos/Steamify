@@ -6,8 +6,11 @@ import * as gm from "gm";
 
 import { MassImporter } from "./importers/massimporter";
 import { MassExporter } from "./exporters/massexporter";
+import { Utils } from "./utils";
+import { Shield } from "./exporters/shield";
 export class Converter {
     static async go() {
+        Utils.init();
         let importer = new MassImporter();
         let converter = new Converter();
         let exporter = new MassExporter();
@@ -16,6 +19,12 @@ export class Converter {
         let games = await importer.getInstalledGames(config);
         games = await converter.fix(games);
         await exporter.sync(games, config);
+    }
+
+    static async test() {
+        let exporter = new Shield();
+        let config = JSON.parse(fs.readFileSync("./config.json", "utf8"));
+        exporter.sync(null, config.Shield);
     }
 
     public async fix(games: Game[]): Promise<Game[]> {
@@ -28,14 +37,24 @@ export class Converter {
 
         for (let game of games) {
             try {
+
                 let gameExe = game.exec;
                 if (gameExe.indexOf("://") == -1) {
                     gameExe = "\"" + path.join(game.folder, game.exec).replace("/", "\\\\").replace(/\\$/g, '') + "\"" + (game.args == "" ? "" : (" " + game.args));
                 }
+
                 let gameDir = "\"" + path.join(game.folder, game.workFolder || '').replace("/", "\\\\").replace(/\\$/g, '') + "\\\"";
                 let appId = game.name;
                 let steamTileFolder = "./out/pics";
                 let tileFile = path.join(steamTileFolder, appId + ".jpg");
+                if (game.tile == '' || game.tile == null) {
+                    let res = await Utils.gist(game.name + " steam tile");
+                    let first = res.filter(p => p.height == 430 && p.width == 920)[0];
+                    if (first != null) {
+                        game.tile = first.url;
+                    }
+                }
+
                 if (game.tile != '' && game.tile != null) {
                     if (game.fixTile) {
                         await this.portraitToTile(game.tile, tileFile);
@@ -51,6 +70,7 @@ export class Converter {
                 } else {
                     tileFile = "";
                 }
+
                 let theIcon = null;
                 let iconFile = path.join(steamTileFolder, appId + "ico.png");
                 if (game.icon != '' && game.icon != null) {
@@ -95,10 +115,6 @@ export class Converter {
     }
 
     private async gmWrite(theGm: gm.State, file: string): Promise<void> {
-        return new Promise<void>((r, f) => {
-            theGm.write(file, (err) => {
-                if (err) { f(err); } else { r(); }
-            });
-        });
+        return new Promise<void>((r, f) => theGm.write(file, (err) => { if (err) { f(err); } else { r(); } }));
     }
 }

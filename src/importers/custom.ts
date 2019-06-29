@@ -6,68 +6,47 @@ import klaw = require("klaw-sync");
 import { Gog } from "./gog";
 
 export class Custom implements IImporter {
-    public async getInstalledGames(libPath: string): Promise<Game[]> {
+    public async getInstalledGames(conf: string | string[]): Promise<Game[]> {
         let o = new Gog();
         let games: Game[] = [];
-
-        if (fs.existsSync(libPath)) {
-            let dirs = fs.readdirSync(libPath);
-            for (let dir of dirs) {
-                let folder = path.join(libPath, dir);
-                let isDir = fs.lstatSync(folder).isDirectory();
-                if (!isDir) {
-                    continue;
-                }
-                let steamId = this.getSteamAppId(folder);
-                if (steamId != null) {
-                    let newGame = {
-                        icon: '',
-                        tile: steamId.tile,
-                        name: dir,
-                        exec: steamId.exe.replace(folder + '\\', "").replace(folder, ""),
-                        args: steamId.args,
-                        folder: folder, //path.dirname(pac.path),
-                        workFolder: '',
-                        tag: "WAREZ",
-                        fixTile: false
-                    };
-                    console.log(newGame);
-                    games.push(newGame);
-                } else {
-                    let ame = (await o.getInstalledGames(folder))[0];
-                    if (ame != null) {
-                        console.log(ame);
-                        games.push(ame);
-                    } else {
-                        console.log("Game not found: " + dir);
+        let libPaths = [];
+        if (Array.isArray(conf)) {
+            libPaths = conf;
+        } else {
+            libPaths = [conf]
+        }
+        for (let libPath of libPaths) {
+            if (fs.existsSync(libPath)) {
+                let dirs = fs.readdirSync(libPath);
+                for (let dir of dirs) {
+                    let folder = path.join(libPath, dir);
+                    let isDir = fs.lstatSync(folder).isDirectory();
+                    if (!isDir) {
+                        continue;
                     }
-                }
-                /*
-                let opts: klaw.Options = { nodir: true, filter: file => file.path.toUpperCase().indexOf("SMARTSTEAMEMU.INI") > -1 };
-                (<any>opts).traverseAll = true;
-                const packages = klaw(libPath, opts);
-                for (let pac of packages) {
-                    try {
-                        let obj = JSON.parse(fs.readFileSync(pac.path, "utf8"));
-                        let playTask = obj.playTasks.find(p => p.category == "game");
-                        let apiFetch = await fetch(`https://api.gog.com/products/${obj.gameId}`);
-                        let api = await apiFetch.json();
+                    let steamId = this.getSteamAppId(folder);
+                    if (steamId != null) {
                         let newGame = {
-                            icon: 'http:' + api.images.icon,
-                            tile: 'http:' + api.images.logo2x.replace("glx_logo_2x", "ggvgm"),
-                            name: obj.name,
-                            exec: playTask.path,
-                            args: playTask.arguments || '',
-                            folder: path.dirname(pac.path),
-                            workFolder: playTask.workingDir || '',
-                            tag: "GOG"
+                            icon: '',
+                            tile: steamId.tile,
+                            name: dir,
+                            exec: steamId.exe.replace(folder + '\\', "").replace(folder, ""),
+                            args: steamId.args,
+                            folder: folder, //path.dirname(pac.path),
+                            workFolder: '',
+                            tag: "WAREZ",
+                            fixTile: false
                         };
                         games.push(newGame);
-                    } catch (e) {
-                        console.log(`Failed to import installed GOG game ${pac}.`);
+                    } else {
+                        let ame = (await o.getInstalledGames(folder))[0];
+                        if (ame != null) {
+                            games.push(ame);
+                        } else {
+                            console.log("Game not found: " + dir);
+                        }
                     }
                 }
-                */
             }
         }
         return games;

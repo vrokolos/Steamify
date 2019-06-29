@@ -1,1 +1,1 @@
-tsc | ts-node index.ts
+tsc && node index.js

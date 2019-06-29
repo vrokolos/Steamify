@@ -27,8 +27,6 @@ export class Epic implements IImporter {
                     args: '',
                     exec: `com.epicgames.launcher://apps/${app.AppName}?action=launch&silent=true`
                 };
-                console.log(game);
-
                 games.push(game);
             }
         }

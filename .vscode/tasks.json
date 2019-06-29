@@ -1,0 +1,16 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [{
+        "label": "sh",
+        "type": "shell",
+        "command": "tsc -p .",
+        "group": { "kind": "build", "isDefault": true },
+        "problemMatcher": ["$tsc"]
+    },{
+        "label": "refresh Steam Games",
+        "type": "shell",
+        "command": "curl http://api.steampowered.com/ISteamApps/GetAppList/v0001/ > assets/steamGames.json"
+    }]
+}
