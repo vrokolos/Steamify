@@ -1,0 +1,10 @@
+{
+    "skipTerminateQuickPick": false,
+    "skipSwitchToOutput": false,
+    "skipErrorMessage": true,
+    "commands": [
+        { "text": "$(rss) Build", "color": "cyan", "commandType": "palette", "command": "workbench.action.tasks.runTask|npm: build" },
+        { "text": "$(rocket) Start", "color": "cyan", "commandType": "palette", "command": "workbench.action.tasks.runTask|npm: start" },
+        { "text": "$(fold-up) Refresh Steam", "color": "lightgreen", "commandType": "palette", "command": "workbench.action.tasks.runTask|npm: refreshSteam" }
+    ]
+}

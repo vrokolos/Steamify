@@ -11,11 +11,12 @@ export class MassImporter implements IImporter {
     public async getInstalledGames(libPath: string): Promise<Game[]> {
         let config = JSON.parse(libPath);
         let importers: { imp: IImporter, lib: string }[] = [
-            { imp: new Gog(), lib: config.GOG },
-            { imp: new Origin(), lib: config.Origin },
-            { imp: new Uplay(), lib: config.Uplay },
-            { imp: new Epic(), lib: config.Epic },
-            { imp: new Bnet(), lib: config.Bnet },
+            { imp: new Gog(), lib: null },
+            { imp: new Origin(), lib: null },
+            { imp: new Epic(), lib: null },
+            { imp: new Bnet(), lib: null },
+
+            { imp: new Uplay(), lib: null },
             { imp: new Custom(), lib: config.Custom }
         ];
 

@@ -5,9 +5,9 @@ import * as path from "path";
 import { Utils } from "../utils";
 
 export class Epic implements IImporter {
-    public async getInstalledGames(libPath: string): Promise<Game[]> {
+    public async getInstalledGames(): Promise<Game[]> {
         let games: Game[] = [];
-        let installListPath = path.join(libPath, "LauncherInstalled.dat");
+        let installListPath = path.join(process.env.ALLUSERSPROFILE, "Epic", "UnrealEngineLauncher", "LauncherInstalled.dat");
         if (fs.existsSync(installListPath)) {
             let list = JSON.parse(fs.readFileSync(installListPath, 'utf8')).InstallationList;
             for (let app of list) {
@@ -15,7 +15,7 @@ export class Epic implements IImporter {
                 let steamId = await Utils.steamsearch(gameName);
                 let tile = '';
                 if (steamId != null) {
-                    tile = `http://cdn.akamai.steamstatic.com/steam/apps/${parseInt(steamId).toString()}/header.jpg`;
+                    tile = `http://cdn.akamai.steamstatic.com/steam/apps/${steamId.toString()}/header.jpg`;
                 }
                 let game: Game = {
                     name: gameName,
@@ -30,6 +30,7 @@ export class Epic implements IImporter {
                 games.push(game);
             }
         }
+        Utils.logImport("EPIC", installListPath, games);
         return games;
     }
 }

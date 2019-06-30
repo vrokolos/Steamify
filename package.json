@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.ts",
     "scripts": {
-        "start": "tsc && node index.js"
+        "build": "tsc",
+        "start": "tsc && node index.js",
+        "refreshSteam": "curl http://api.steampowered.com/ISteamApps/GetAppList/v0001/ > assets/steamGames.json"
     },
     "repository": {
         "type": "git",
@@ -21,8 +23,6 @@
         "node-fetch": "^2.5.0",
         "regedit": "^3.0.2",
         "steam-store": "^0.4.1",
-        "ts-node": "^8.1.0",
-        "typescript": "^3.4.5",
         "windows-shortcuts": "^0.1.6",
         "xml2js": "^0.4.19"
     },

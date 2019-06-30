@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import klaw = require("klaw-sync");
 import { Gog } from "./gog";
+import { Utils } from "../utils";
 
 export class Custom implements IImporter {
     public async getInstalledGames(conf: string | string[]): Promise<Game[]> {
@@ -39,7 +40,7 @@ export class Custom implements IImporter {
                         };
                         games.push(newGame);
                     } else {
-                        let ame = (await o.getInstalledGames(folder))[0];
+                        let ame = (await o.procFolder(folder))[0];
                         if (ame != null) {
                             games.push(ame);
                         } else {
@@ -49,6 +50,7 @@ export class Custom implements IImporter {
                 }
             }
         }
+        Utils.logImport("CUSTOM", libPaths.join(" "), games);
         return games;
     }
 

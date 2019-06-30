@@ -8,8 +8,9 @@ import { Utils } from "../utils";
 
 export class Origin implements IImporter {
 
-    public async getInstalledGames(libPath: string): Promise<Game[]> {
-        let contentPath = path.join(libPath, "LocalContent");
+    public async getInstalledGames(): Promise<Game[]> {
+
+        let contentPath = path.join(process.env.ALLUSERSPROFILE, "Origin", "LocalContent");
         let games: Game[] = [];
 
         if (fs.existsSync(contentPath)) {
@@ -68,6 +69,8 @@ export class Origin implements IImporter {
                 }
             }
         }
+
+        Utils.logImport("ORIGIN", contentPath, games);
         return games;
     }
 

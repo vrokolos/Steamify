@@ -7,7 +7,7 @@ import * as gm from "gm";
 import { MassImporter } from "./importers/massimporter";
 import { MassExporter } from "./exporters/massexporter";
 import { Utils } from "./utils";
-import { Shield } from "./exporters/shield";
+//import { Shield } from "./exporters/shield";
 export class Converter {
     static async go() {
         Utils.init();
@@ -22,9 +22,12 @@ export class Converter {
     }
 
     static async test() {
-        let exporter = new Shield();
+        /*let exporter = new Shield();
         let config = JSON.parse(fs.readFileSync("./config.json", "utf8"));
-        exporter.sync(null, config.Shield);
+        exporter.sync(null, config.Shield);*/
+
+
+        //console.log(folders);
     }
 
     public async fix(games: Game[]): Promise<Game[]> {

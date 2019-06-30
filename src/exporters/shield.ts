@@ -8,20 +8,17 @@ import { Utils } from "../utils";
 
 export class Shield implements IExporter {
     public async sync(games: Game[], shieldConfig: string | string[]): Promise<void> {
-        let fingerprint = shieldConfig[0];
-        let shortFolder = shieldConfig[1];
-        let steamFolder = shieldConfig[2];
-        let steamShortcutFolder = shieldConfig[3];
+        let fingerprint = path.join(process.env.LOCALAPPDATA, "NVIDIA", "NvBackend", "ApplicationOntology", "data", "fingerprint.db");
+        let shortFolder = path.join(process.env.LOCALAPPDATA, "NVIDIA Corporation", "Shield Apps");
 
-        let steamGames = this.steamImport(steamFolder);
+        let steam = new Shortcuter();
+        let shortGames = await steam.import(shieldConfig as string);
+        let steamGames = steam.steamLibraries.map(p => this.steamImport(p)).reduce((a, b) => a.concat(b));
+
         let nvidiaGames = this.import(fingerprint);
         let idxNvidiaIds = nvidiaGames.filter(p => p.appId != null && p.appId != "").groupBy(p => p.appId);
         let idxNvidiaNames = nvidiaGames.filter(p => p.name != null && p.name != "").groupBy(p => p.name.toLowerCase().replace(/ /gi, "").replace(/:/gi, ""));
 
-        let steam = new Shortcuter();
-        let shortcutFile = path.join(steamShortcutFolder, "shortcuts.vdf");
-        let rs = fs.readFileSync(shortcutFile, "utf8");
-        let shortGames = steam.import(rs);
         let diffGames = steamGames.filter(p => p.name.indexOf("VR") == -1 && !idxNvidiaIds.hasOwnProperty(p.appId) && !idxNvidiaNames.hasOwnProperty(p.name.toLowerCase().replace(/ /gi, "").replace(/:/gi, "")));
 
         let shortapps = shortGames.map(p => { return { name: p.appname, appId: p.id, dir: p.startDir }; });
@@ -80,7 +77,9 @@ export class Shield implements IExporter {
         let packages = fs.readdirSync(realSteamFolder).filter(p => p.endsWith(".acf"));
         for (let pack of packages) {
             let str = fs.readFileSync(path.join(realSteamFolder, pack), { encoding: "utf8" });
-            let appId = /\"appid\"\s*?\"(\d*)\"/gi.exec(str)[1];
+            let app = /\"appid\"\s*?\"(\d*)\"/gi.exec(str);
+            if (app == null) continue;
+            let appId = app[1];
             let name = /\"name\"\s*?\"(.*)\"/gi.exec(str)[1];
             let dir = /\"installdir\"\s*?\"(.*)\"/gi.exec(str)[1];
             res.push({ name, appId, dir })

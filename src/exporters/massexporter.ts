@@ -8,11 +8,10 @@ export class MassExporter implements IExporter {
         let config = JSON.parse(libPath);
         let exporters = [
             { exp: new Shortcuter(), lib: config.Steam },
-            { exp: new Shield(), lib: config.Shield }
+            { exp: new Shield(), lib: config.Steam }
         ];
         for (let exp of exporters) {
-            exp.exp.sync(games, exp.lib);
+            await exp.exp.sync(games, exp.lib);
         }
-        //await Promise.all(exporters.map(p => p.exp.sync(games, p.lib)));
     }
 }

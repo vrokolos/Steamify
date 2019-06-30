@@ -1,10 +1,1 @@
-{
-    "Bnet": "c:/Games/BNet",
-    "GOG": "c:/Games/GOG",
-    "Uplay": "C:/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/cache",
-    "Origin": "c:/ProgramData/Origin",
-    "Steam": "C:/Program Files (x86)/Steam/userdata/35355223/config",
-    "Epic": "C:/ProgramData/Epic/UnrealEngineLauncher",
-    "Custom": ["c:/Games/Warez", "d:/Games/CO-OP"],
-    "Shield": ["C:/Users/Iosif/AppData/Local/NVIDIA/NvBackend/ApplicationOntology/data/fingerprint.db", "C:/Users/Iosif/AppData/Local/NVIDIA Corporation/Shield Apps", "c:/games/Steam", "C:/Program Files (x86)/Steam/userdata/35355223/config"]
-}
+{ "Steam": "35355223", "Custom": ["c:/Games/Warez", "d:/Games/CO-OP"] }

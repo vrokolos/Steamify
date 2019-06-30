@@ -10,7 +10,6 @@
         "**/symbols*.json": true
     },
     "editor.formatOnSave": true,
-    "tslint.autoFixOnSave": true,
     "files.trimTrailingWhitespace": true,
     "vsicons.presets.angular": false,
     "[json]": { "editor.formatOnSave": false },

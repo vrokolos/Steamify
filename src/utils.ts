@@ -1,8 +1,10 @@
 import regedit = require('regedit');
 import * as xml2js from "xml2js";
 import * as fs from "fs";
+import * as path from "path";
 import * as gis from "g-i-s";
 import fetch from "node-fetch";
+import { Game } from './game';
 
 declare global { interface Array<T> { groupBy(x: (p: T) => string): { [key: string]: Array<T>; } } }
 Array.prototype.groupBy = function (x: (p: any) => string) {
@@ -42,8 +44,21 @@ export namespace Utils {
         });
     }
 
+    export async function GetRegString(thepath: string): Promise<string> {
+        let folder = path.dirname(thepath);
+        let val = path.basename(thepath);
+        let key = await GetReg(folder);
+        let value = key.values[val].value as string;
+        return value;
+    }
+
     export async function xml2json(data: string): Promise<any> {
         return new Promise<any>((resolve, fail) => xml2js.parseString(data, (err, project: any) => err ? fail(err) : resolve(project)));
+    }
+
+    export function logImport(platform: string, libPath: string, games: Game[]) {
+        let logGames = games.length == 0 ? "No games installed" : games.map(p => p.name).join(", ");
+        console.log(`[${platform}] ${libPath} | ${logGames}`);
     }
 
     // GAMELIST: http://api.steampowered.com/ISteamApps/GetAppList/v0001/
@@ -55,10 +70,7 @@ export namespace Utils {
         }
     }
 
-    export async function steamsearch(name: string): Promise<any> {
-        if (list.hasOwnProperty(name.toLowerCase())) {
-            return list[name.toLowerCase()];
-        }
-        return null;
+    export async function steamsearch(name: string): Promise<number> {
+        return list[name.toLowerCase()] || null;
     }
 }

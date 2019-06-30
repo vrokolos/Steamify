@@ -6,30 +6,34 @@ import { Utils } from "../utils";
 
 export class Uplay implements IImporter {
     private root = "HKLM\\SOFTWARE\\ubisoft\\Launcher\\Installs\\";
-    public async getInstalledGames(libPath: string): Promise<Game[]> {
+    private launcher = "HKLM\\SOFTWARE\\ubisoft\\Launcher\\InstallDir";
+    public async getInstalledGames(): Promise<Game[]> {
+        let libPath = await Utils.GetRegString(this.launcher);
+        libPath = path.join(libPath, "cache");
         let installsKey = await Utils.GetReg(this.root);
-        if (installsKey == null || installsKey.keys == null) {
-            return [];
-        }
+
         let data = fs.readFileSync(path.join(libPath, "configuration", "configurations"), "utf8");
         let games: Game[] = [];
-        for (let install of installsKey.keys) {
-            try {
-                let gameData = await Utils.GetReg(this.root + install);
-                let installDir = (gameData.values["InstallDir"].value as string).replace('/', "\\");
+        if (installsKey != null && installsKey.keys != null) {
+            for (let install of installsKey.keys) {
+                try {
+                    let gameData = await Utils.GetReg(this.root + install);
+                    let installDir = (gameData.values["InstallDir"].value as string).replace('/', "\\");
 
-                let newGame = new Game();
-                newGame.tag = "Uplay";
-                newGame.name = path.basename(installDir, path.extname(installDir));
-                newGame.folder = installDir;
-                newGame.exec = `uplay://launch/${install}`;
-                newGame.poster = libPath + "/assets/" + this.getCachedLogoFile(newGame.name, data);
+                    let newGame = new Game();
+                    newGame.tag = "Uplay";
+                    newGame.name = path.basename(installDir, path.extname(installDir));
+                    newGame.folder = installDir;
+                    newGame.exec = `uplay://launch/${install}`;
+                    newGame.poster = libPath + "/assets/" + this.getCachedLogoFile(newGame.name, data);
 
-                games.push(newGame);
-            } catch (ex) {
-                console.log(`error :`, ex);
+                    games.push(newGame);
+                } catch (ex) {
+                    console.log(`error :`, ex);
+                }
             }
         }
+        Utils.logImport("UPLAY", libPath, games);
         return games;
     }
 

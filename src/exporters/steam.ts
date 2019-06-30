@@ -5,19 +5,44 @@ import { CRC } from 'crc-full';
 import long = require("long");
 import { IExporter } from "./exporter_iface";
 import { exec, spawn } from "child_process";
+import { Utils } from "../utils";
 
 export class Shortcuter implements IExporter {
-    private steamExe = "C:/Program Files (x86)/Steam/Steam.exe";
+
+    steamPath = "";
+    steamExe = "";
+    steamShortcutsPath = "";
+    steamTileFolder = "";
+    steamLibraries = [];
+
+    public async init(steamConfig: string) {
+        this.steamPath = await Utils.GetRegString("HKCU\\Software\\Valve\\Steam\\SteamPath");
+        this.steamExe = path.join(this.steamPath, "Steam.exe");
+        this.steamShortcutsPath = path.join(this.steamPath, "userdata", steamConfig, "config", `shortcuts.vdf`);
+        this.steamTileFolder = path.join(this.steamPath, "userdata", steamConfig, "config", `grid`);
+        let p = path.join(this.steamPath, "steamapps", "libraryfolders.vdf");
+        let conf = fs.readFileSync(p, "utf8");
+
+        let folders = [];
+        let reName = /\"\d*\"\s*\"(.*?)\"/gi;
+        let match: RegExpExecArray | string[];
+        while (match = reName.exec(conf)) {
+            folders.push(match[1]);
+        }
+        if (folders.indexOf(this.steamPath) == -1) {
+            folders.push(this.steamPath);
+        }
+        folders = folders.filter(p => fs.existsSync(p));
+        this.steamLibraries = folders;
+    }
+
     public async sync(games: Game[], steamConfig: string | string[]): Promise<void> {
-        let steamTileFolder = path.join(steamConfig as string, `grid`);
-        let steamShortcutsPath = path.join(steamConfig as string, `shortcuts.vdf`);
-        let shortfile = fs.readFileSync(steamShortcutsPath, "utf8");
-        let shorts: Shortcut[] = this.import(shortfile);
+        let shorts = await this.import(steamConfig as string);
         let added = false;
         for (let game of games) {
             try {
                 let appId = this.getAppId(game.exec, game.name);
-                let tileFile = path.join(steamTileFolder, appId + ".jpg");
+                let tileFile = path.join(this.steamTileFolder, appId + ".jpg");
                 try {
                     if (game.tile != '') {
                         fs.copyFileSync(game.tile, tileFile);
@@ -25,7 +50,7 @@ export class Shortcuter implements IExporter {
                 } catch (ex) {
                     console.log("Couldn't copy tile file: ", ex);
                 }
-                console.log(`[${game.tag}] ${game.name}: ${game.tile}`);
+                //console.log(`[${game.tag}] ${game.name}: ${game.tile}`);
                 if (!shorts.some(p => p.exe == game.exec)) {
                     let newItem = new Shortcut();
                     newItem.appname = game.name;
@@ -51,7 +76,7 @@ export class Shortcuter implements IExporter {
                 console.log(data.toString());
                 setTimeout(() => spawn(this.steamExe, { stdio: 'ignore', detached: true }).unref(), 5000);
             });
-            fs.writeFileSync(steamShortcutsPath, outShort);
+            fs.writeFileSync(this.steamShortcutsPath, outShort);
         }
     }
 
@@ -68,8 +93,11 @@ export class Shortcuter implements IExporter {
     private regTags = /\00tags\00(.*?)[\b]/i;
     private regTag = /\01[0-9]+\00(.*?)\00(.*)/i;
 
-    public import(vdfAsString: string): Shortcut[] {
-        let match = this.regVdf.exec(vdfAsString);
+    public async import(steamConfig: string): Promise<Shortcut[]> {
+        await this.init(steamConfig as string);
+
+        let shortfile = fs.readFileSync(this.steamShortcutsPath, "utf8");
+        let match = this.regVdf.exec(shortfile);
         if (!match) {
             throw new Error("Invalid shortcuts.vdf file");
         }

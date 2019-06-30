@@ -3,10 +3,16 @@ import { IImporter } from "./importer_iface";
 import * as fs from "fs";
 import * as path from "path";
 import klaw = require("klaw-sync");
+import { Utils } from "../utils";
 
 export class Bnet implements IImporter {
-    public async getInstalledGames(libPath: string): Promise<Game[]> {
+    public async getInstalledGames(): Promise<Game[]> {
         let games: Game[] = [];
+
+        let p = path.join(process.env.APPDATA, "Battle.Net", "Battle.net.config");
+        let conf = fs.readFileSync(p, "utf8");
+        let config = JSON.parse(conf);
+        let libPath = config.Client.Install.DefaultInstallPath;
         let opts: klaw.Options = { nodir: true, depthLimit: 1, filter: file => file.path.indexOf(".product.db") > -1 };
         (<any>opts).traverseAll = true;
         const packages = klaw(libPath, opts);
@@ -33,6 +39,7 @@ export class Bnet implements IImporter {
                 console.log(`Failed to import installed battlenet game ${pac}.`);
             }
         }
+        Utils.logImport("BNET", libPath, games);
         return games;
     }
 }
