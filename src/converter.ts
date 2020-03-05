@@ -7,6 +7,7 @@ import * as gm from "gm";
 import { MassImporter } from "./importers/massimporter";
 import { MassExporter } from "./exporters/massexporter";
 import { Utils } from "./utils";
+import { Shield } from "./exporters/shield";
 //import { Shield } from "./exporters/shield";
 export class Converter {
     static async go() {
@@ -22,12 +23,24 @@ export class Converter {
     }
 
     static async test() {
-        /*let exporter = new Shield();
+        let exporter = new Shield();
         let config = JSON.parse(fs.readFileSync("./config.json", "utf8"));
-        exporter.sync(null, config.Shield);*/
-
+        exporter.sync(null, config.Steam);
 
         //console.log(folders);
+    }
+
+    aspect(p: any) {
+        return Math.abs((p.height / p.width) - 1.5);
+    }
+
+    private async testurl(url: string): Promise<boolean> {
+        let req = await fetch(url);
+        let text = await req.text();
+        if (text.indexOf("html") > -1 || text.indexOf("found") > -1 || text.indexOf("Found") > -1 || text.indexOf("Error") > -1) {
+            return false;
+        }
+        return true;
     }
 
     public async fix(games: Game[]): Promise<Game[]> {
@@ -50,37 +63,111 @@ export class Converter {
                 let appId = game.name;
                 let steamTileFolder = "./out/pics";
                 let tileFile = path.join(steamTileFolder, appId + ".jpg");
-                if (game.tile == '' || game.tile == null) {
-                    let res = await Utils.gist(game.name + " steam tile");
-                    let first = res.filter(p => p.height == 430 && p.width == 920)[0];
-                    if (first != null) {
-                        game.tile = first.url;
+                if (!fs.existsSync(tileFile)) {
+                    if (game.tile == '' || game.tile == null) {
+                        const gameName = game.name;
+                        let rest = "";
+                        for (let url of ["\"" + gameName + "\" imagesize:460x215", "\"" + gameName + "\""]) {
+                            let res = await Utils.gist(url);
+                            let hqtiles = res.filter(p => p.height == 430 && p.width == 920);
+                            for (let first of hqtiles) {
+                                if (await this.testurl(first.url)) {
+                                    rest = first.url;
+                                    break;
+                                }
+                            }
+                            if (rest == "") {
+                                let sqtiles = res.filter(p => p.height == 215 && p.width == 460);
+                                for (let first of sqtiles) {
+                                    if (await this.testurl(first.url)) {
+                                        rest = first.url;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (rest == "") {
+                                let othertiles = res.filter(p => p.height < p.width * 0.7);
+                                for (let first of othertiles) {
+                                    if (await this.testurl(first.url)) {
+                                        rest = first.url;
+                                    }
+                                }
+                            }
+                            if (rest != "") {
+                                break;
+                            }
+                        }
+
+                        game.tile = rest;
+                    }
+                    if (game.tile != '' && game.tile != null) {
+                        /*if (game.fixTile) {
+                            await this.portraitToTile(game.tile, tileFile);
+                        } else*/ if (game.tile.startsWith("http")) {
+                            let req = await fetch(game.tile);
+                            let buff = await req.buffer();
+                            fs.writeFileSync(tileFile, buff);
+                        } else if (!fs.existsSync(tileFile)) {
+                            fs.copyFileSync(game.tile, tileFile);
+                        }
+                    }/* else if (game.poster != '' && game.poster != null) {
+                        await this.portraitToTile(game.poster, tileFile);
+                    }*/ else {
+                        tileFile = "";
                     }
                 }
 
-                if (game.tile != '' && game.tile != null) {
-                    if (game.fixTile) {
-                        await this.portraitToTile(game.tile, tileFile);
-                    } else if (game.tile.startsWith("http")) {
-                        let req = await fetch(game.tile);
-                        let buff = await req.buffer();
-                        fs.writeFileSync(tileFile, buff);
-                    } else if (!fs.existsSync(tileFile)) {
-                        fs.copyFileSync(game.tile, tileFile);
+                let posterFile = path.join(steamTileFolder, appId + "p.jpg");
+                if (!fs.existsSync(posterFile)) {
+                    let gamePoster = game.poster;
+                    if (gamePoster != '') {
+                        try {
+                            if (await this.testurl(gamePoster)) {
+                                let req = await fetch(gamePoster);
+                                await req.buffer();
+                            } else {
+                                gamePoster = "";
+                            }
+                        } catch (e) {
+                            gamePoster = '';
+                        }
                     }
-                } else if (game.poster != '' && game.poster != null) {
-                    await this.portraitToTile(game.poster, tileFile);
-                } else {
-                    tileFile = "";
+                    if (gamePoster == '' || gamePoster == null || gamePoster == undefined) {
+                        let res = await Utils.gist("\"" + game.name + "\" game poster");
+                        let posters = res.filter(p => p.height > p.width * 1.4);
+                        for (let first of posters) {
+                            if (await this.testurl(first.url)) {
+                                gamePoster = first.url;
+                                break;
+                            }
+                        }
+                    }
+                    if (gamePoster != '' && gamePoster != null) {
+                        /*if (game.fixTile) {
+                            await this.portraitToTile(game.tile, tileFile);
+                        } else*/ if (gamePoster.startsWith("http")) {
+                            let req = await fetch(gamePoster);
+                            let buff = await req.buffer();
+                            fs.writeFileSync(posterFile, buff);
+                        } else if (!fs.existsSync(posterFile)) {
+                            fs.copyFileSync(gamePoster, posterFile);
+                        }
+                    }/* else if (game.poster != '' && game.poster != null) {
+                        await this.portraitToTile(game.poster, tileFile);
+                    }*/ else {
+                        posterFile = "";
+                    }
                 }
 
                 let theIcon = null;
                 let iconFile = path.join(steamTileFolder, appId + "ico.png");
-                if (game.icon != '' && game.icon != null) {
+                if (game.icon != '' && game.icon != null && game.icon.startsWith("http")) {
                     let tileFetch = await fetch(game.icon);
                     let buff = await tileFetch.buffer();
                     fs.writeFileSync(iconFile, buff);
                     theIcon = iconFile;
+                } else if (game.icon.endsWith(".exe") || game.icon.endsWith(".exe\"") || game.icon.endsWith(".png")) {
+                    theIcon = game.icon;
                 } else if (gameExe.endsWith(".exe") || gameExe.endsWith(".exe\"")) {
                     theIcon = gameExe;
                 } else {
@@ -89,6 +176,7 @@ export class Converter {
                 }
                 game.icon = theIcon;
                 game.tile = tileFile;
+                game.poster = posterFile;
                 game.exec = gameExe;
                 game.workFolder = gameDir;
             } catch (e) {

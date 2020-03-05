@@ -10,12 +10,7 @@ export class Custom implements IImporter {
     public async getInstalledGames(conf: string | string[]): Promise<Game[]> {
         let o = new Gog();
         let games: Game[] = [];
-        let libPaths = [];
-        if (Array.isArray(conf)) {
-            libPaths = conf;
-        } else {
-            libPaths = [conf]
-        }
+        let libPaths = Array.isArray(conf) ? conf : [conf];
         for (let libPath of libPaths) {
             if (fs.existsSync(libPath)) {
                 let dirs = fs.readdirSync(libPath);
@@ -33,6 +28,7 @@ export class Custom implements IImporter {
                             name: dir,
                             exec: steamId.exe.replace(folder + '\\', "").replace(folder, ""),
                             args: steamId.args,
+                            poster: '',
                             folder: folder, //path.dirname(pac.path),
                             workFolder: '',
                             tag: "WAREZ",
@@ -57,13 +53,13 @@ export class Custom implements IImporter {
     private getSteamAppId(dir: string): { tile: string, exe: string, args: string } {
         let opts: klaw.Options = {
             nodir: true, filter: file => file.path.toUpperCase().indexOf(".INI") > -1 || file.path.indexOf("appid") > -1 ||
-                (file.path.toUpperCase().indexOf(".EXE") > -1 && file.path.indexOf("unins") == -1 && file.path.toUpperCase().indexOf("REDIST") == -1 && file.path.toUpperCase().indexOf("THIRDPARTY") == -1)
+                ((file.path.toUpperCase().indexOf(".EXE") > -1 || file.path.toUpperCase().indexOf(".LNK") > -1) && file.path.indexOf("unins") == -1 && file.path.toUpperCase().indexOf("REDIST") == -1 && file.path.toUpperCase().indexOf("THIRDPARTY") == -1)
         };
         (<any>opts).traverseAll = true;
         const allfiles = klaw(dir, opts).slice(0);
         let isOrigin = allfiles.find(p => p.path.toUpperCase().indexOf("ORIGINS.INI") > -1);
-        let packages = allfiles.filter(p => p.path.toUpperCase().indexOf(".EXE") == -1);
-        let filtexes = allfiles.filter(p => p.path.toUpperCase().indexOf(".EXE") > -1);
+        let packages = allfiles.filter(p => p.path.toUpperCase().indexOf(".EXE") == -1 && p.path.toUpperCase().indexOf(".LNK") == -1);
+        let filtexes = allfiles.filter(p => p.path.toUpperCase().indexOf(".EXE") > -1 || p.path.toUpperCase().indexOf(".LNK") > -1);
         let appid = null;
         let target = null;
         let theargs = '';
@@ -134,7 +130,7 @@ export class Custom implements IImporter {
                 theexe = filtexes[0].path;
             } else {
                 for (let exe of filtexes) {
-                    let exeName = path.basename(exe.path).toUpperCase().replace(/\s/g, "").replace(".EXE", "");
+                    let exeName = path.basename(exe.path).toUpperCase().replace(/\s/g, "").replace(".EXE", "").replace(".LNK", "");
                     let dirName = path.basename(dir).toUpperCase().replace(/\s/g, "");
                     if (exeName.indexOf(dirName) > -1) {
                         theexe = exe.path;
@@ -143,7 +139,7 @@ export class Custom implements IImporter {
                 }
                 if (theexe == null) {
                     for (let exe of filtexes) {
-                        let exeName = path.basename(exe.path).toUpperCase().replace(/\s/g, "").replace(".EXE", "");
+                        let exeName = path.basename(exe.path).toUpperCase().replace(/\s/g, "").replace(".EXE", "").replace(".LNK", "");
                         let dirName = path.basename(dir).toUpperCase().replace(/\s/g, "");
                         if (dirName.indexOf(exeName) > -1) {
                             theexe = exe.path;

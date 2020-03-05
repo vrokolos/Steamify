@@ -6,6 +6,8 @@ import { Uplay } from "./uplay";
 import { Bnet } from "./bnet";
 import { Custom } from "./custom";
 import { Epic } from "./epic";
+import { CustomLnk } from "./customlnk";
+import { Win } from "./win";
 
 export class MassImporter implements IImporter {
     public async getInstalledGames(libPath: string): Promise<Game[]> {
@@ -17,7 +19,10 @@ export class MassImporter implements IImporter {
             { imp: new Bnet(), lib: null },
 
             { imp: new Uplay(), lib: null },
-            { imp: new Custom(), lib: config.Custom }
+            { imp: new Custom(), lib: config.Custom },
+            { imp: new CustomLnk(), lib: config.CustomLnk },
+
+            { imp: new Win(), lib: null }
         ];
 
         let results = await Promise.all(importers.map(p => p.imp.getInstalledGames(p.lib)));

@@ -1,11 +1,25 @@
 import { Game } from "../game";
 import * as fs from "fs";
 import * as path from "path";
-import { CRC } from 'crc-full';
-import long = require("long");
+//import { CRC } from 'crc-full';
+//import long = require("long");
 import { IExporter } from "./exporter_iface";
 import { exec, spawn } from "child_process";
 import { Utils } from "../utils";
+
+export class Shortcut {
+    public appname: string;
+    public exe: string;
+    public startDir: string;
+    public icon: string;
+    public shortcutPath: string;
+    public hidden: boolean;
+    public tags: string[];
+    public favorite?: string;
+    public launchOptions: string;
+
+    public id: string;
+}
 
 export class Shortcuter implements IExporter {
 
@@ -14,10 +28,21 @@ export class Shortcuter implements IExporter {
     steamShortcutsPath = "";
     steamTileFolder = "";
     steamLibraries = [];
+    autoGames: { [name: string]: boolean } = {};
+    autoGamePath = "";
 
     public async init(steamConfig: string) {
         this.steamPath = await Utils.GetRegString("HKCU\\Software\\Valve\\Steam\\SteamPath");
         this.steamExe = path.join(this.steamPath, "Steam.exe");
+        this.autoGamePath = path.join(this.steamPath, "userdata", steamConfig, "config", `auto.lst`);
+        if (fs.existsSync(this.autoGamePath)) {
+            let obj = {};
+            let files = fs.readFileSync(this.autoGamePath, "utf-8").split('\n').filter(Boolean);
+            for (let p of files) {
+                obj[p] = true;
+            }
+            this.autoGames = obj;
+        }
         this.steamShortcutsPath = path.join(this.steamPath, "userdata", steamConfig, "config", `shortcuts.vdf`);
         this.steamTileFolder = path.join(this.steamPath, "userdata", steamConfig, "config", `grid`);
         let p = path.join(this.steamPath, "steamapps", "libraryfolders.vdf");
@@ -50,6 +75,23 @@ export class Shortcuter implements IExporter {
                 } catch (ex) {
                     console.log("Couldn't copy tile file: ", ex);
                 }
+                appId = String(BigInt(appId) >> BigInt(32));
+                let tileFile2 = path.join(this.steamTileFolder, appId + ".jpg");
+                try {
+                    if (game.tile != '') {
+                        fs.copyFileSync(game.tile, tileFile2);
+                    }
+                } catch (ex) {
+                    console.log("Couldn't copy tile file: ", ex);
+                }
+                let posterFile = path.join(this.steamTileFolder, appId + "p.jpg");
+                try {
+                    if (game.tile != '') {
+                        fs.copyFileSync(game.poster, posterFile);
+                    }
+                } catch (ex) {
+                    console.log("Couldn't copy tile file: ", ex);
+                }
                 //console.log(`[${game.tag}] ${game.name}: ${game.tile}`);
                 if (!shorts.some(p => p.exe == game.exec)) {
                     let newItem = new Shortcut();
@@ -67,8 +109,10 @@ export class Shortcuter implements IExporter {
                 console.log(e, "Error on game", game);
             }
         }
-        let removed = shorts.filter(p => p.tags.indexOf("AUTO") != -1 && !games.some(g => g.name == p.appname));
-        let outshorts = shorts.filter(p => p.tags.indexOf("AUTO") == -1 || games.some(g => g.name == p.appname));
+        let removed = shorts.filter(p => this.autoGames[p.exe] && !games.some(g => g.name == p.appname));
+        let outshorts = shorts.filter(p => !this.autoGames[p.exe] || games.some(g => g.name == p.appname));
+        let str = shorts.map(p => p.exe).join("\n");
+        fs.writeFileSync(this.autoGamePath, str);
         if (added || removed.length > 0) {
             let outShort = this.export(outshorts);
             exec(`"${this.steamExe}" -shutdown`, (err, data) => {
@@ -80,7 +124,7 @@ export class Shortcuter implements IExporter {
         }
     }
 
-    private crc = CRC.default("CRC32");
+    //private crc = CRC.default("CRC32");
     private regVdf = /^\00shortcuts\00(.*)[\b\b]$/i;
     private regShortcut = /(.*)\00[0-9]+\00(\01appname\00.*)[\b]/i;
     private regAppname = /\01appname\00(.*?)\00/i;
@@ -94,7 +138,7 @@ export class Shortcuter implements IExporter {
     private regTag = /\01[0-9]+\00(.*?)\00(.*)/i;
 
     public async import(steamConfig: string): Promise<Shortcut[]> {
-        await this.init(steamConfig as string);
+        await this.init(steamConfig);
 
         let shortfile = fs.readFileSync(this.steamShortcutsPath, "utf8");
         let match = this.regVdf.exec(shortfile);
@@ -168,23 +212,18 @@ export class Shortcuter implements IExporter {
     }
 
     private getAppId(exe: string, name: string): string {
-        let inputString = exe + name;
-        let crc = this.crc.compute(Buffer.from(inputString));
-        let longVal = new long(crc);
-        return longVal.or(0x80000000).shl(32).toUnsigned().or(0x02000000).toString();
+        const key = exe + name;
+        const top = BigInt(BigInt(Utils.b_crc32(key)) | BigInt(0x80000000));
+        const shift = (BigInt(top) << BigInt(32) | BigInt(0x02000000));
+        return String(shift);
+        /*
+                let inputString = exe + name;
+                let crc = this.crc.compute(Buffer.from(inputString));
+                let longVal = new long(crc);
+                console.log({ name, longVal });
+                let newVal = ((Utils.b_crc32(inputString) & 0xFFFFFFFF) | 0x80000000).toString();
+                newVal = this.generateAltAppId(exe, name);
+                console.log({ name, newVal });
+                return longVal.or(0x80000000).shl(32).toUnsigned().or(0x02000000).toString();*/
     }
-}
-
-export class Shortcut {
-    public appname: string;
-    public exe: string;
-    public startDir: string;
-    public icon: string;
-    public shortcutPath: string;
-    public hidden: boolean;
-    public tags: string[];
-    public favorite?: string;
-    public launchOptions: string;
-
-    public id: string;
 }
